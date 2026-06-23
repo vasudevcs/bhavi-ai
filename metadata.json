@@ -1,0 +1,6 @@
+{
+  "name": "Bhavi",
+  "description": "Bhavi is an AI Digital Twin platform. Create your future self, predict outcomes, run future scenarios, and chat directly with your digital twin to learn and improve.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
