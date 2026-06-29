@@ -6,6 +6,7 @@ import FutureSimulator from "./components/FutureSimulator";
 import ChatWithBhavi from "./components/ChatWithBhavi";
 import { TwinProfile, TwinInsights, TwinMetrics, ChatMessage, SimulatorOutcome } from "./types";
 import { Sparkles, Brain, Compass, MessageSquare, Target, LogOut, ArrowRight, Activity, Plus } from "lucide-react";
+import { AnimatePresence } from "motion/react";
 
 export default function App() {
   const [page, setPage] = useState<"landing" | "create" | "dashboard" | "simulator" | "chat">("landing");
@@ -324,54 +325,61 @@ export default function App() {
         </div>
       </nav>
 
-      {/* MAIN MAIN STAGE SCREEN ROUTER */}
-      <main className="flex-1">
-        {page === "landing" && (
-          <LandingPage
-            onCreateClick={() => setPage("create")}
-            onViewTwinClick={() => setPage("dashboard")}
-            hasExistingTwin={!!profile}
-          />
-        )}
+      {/* MAIN STAGE SCREEN ROUTER */}
+      <main className="flex-1 relative">
+        <AnimatePresence mode="wait">
+          {page === "landing" && (
+            <LandingPage
+              {...{ key: "landing" }}
+              onCreateClick={() => setPage("create")}
+              onViewTwinClick={() => setPage("dashboard")}
+              hasExistingTwin={!!profile}
+            />
+          )}
 
-        {page === "create" && (
-          <CreateTwinPage
-            onSave={handleSaveTwinProfile}
-            initialProfile={profile}
-          />
-        )}
+          {page === "create" && (
+            <CreateTwinPage
+              {...{ key: "create" }}
+              onSave={handleSaveTwinProfile}
+              initialProfile={profile}
+            />
+          )}
 
-        {page === "dashboard" && profile && insights && (
-          <Dashboard
-            profile={profile}
-            insights={insights}
-            onNavigateToSimulator={() => setPage("simulator")}
-            onNavigateToChat={() => setPage("chat")}
-            onReconfigureTwin={() => setPage("create")}
-          />
-        )}
+          {page === "dashboard" && profile && insights && (
+            <Dashboard
+              {...{ key: "dashboard" }}
+              profile={profile}
+              insights={insights}
+              onNavigateToSimulator={() => setPage("simulator")}
+              onNavigateToChat={() => setPage("chat")}
+              onReconfigureTwin={() => setPage("create")}
+            />
+          )}
 
-        {page === "simulator" && profile && insights && (
-          <FutureSimulator
-            profile={profile}
-            currentMetrics={{
-              readinessScore: insights.readinessScore,
-              riskScore: insights.riskScore,
-              focusScore: insights.focusScore,
-              consistencyScore: insights.consistencyScore,
-            }}
-            onSimulate={handleSimulateScenario}
-          />
-        )}
+          {page === "simulator" && profile && insights && (
+            <FutureSimulator
+              {...{ key: "simulator" }}
+              profile={profile}
+              currentMetrics={{
+                readinessScore: insights.readinessScore,
+                riskScore: insights.riskScore,
+                focusScore: insights.focusScore,
+                consistencyScore: insights.consistencyScore,
+              }}
+              onSimulate={handleSimulateScenario}
+            />
+          )}
 
-        {page === "chat" && profile && (
-          <ChatWithBhavi
-            profile={profile}
-            messages={messages}
-            onSendMessage={handleSendChatMessage}
-            isGeneratingResponse={isGeneratingResponse}
-          />
-        )}
+          {page === "chat" && profile && (
+            <ChatWithBhavi
+              {...{ key: "chat" }}
+              profile={profile}
+              messages={messages}
+              onSendMessage={handleSendChatMessage}
+              isGeneratingResponse={isGeneratingResponse}
+            />
+          )}
+        </AnimatePresence>
       </main>
 
       {/* Small Ambient footer */}

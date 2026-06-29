@@ -110,7 +110,7 @@ You must return only a valid JSON response containing:
 Return absolute valid JSON. Do not write markdown tags other than the JSON structure.`;
 
     const response = await ai.models.generateContent({
-      model: "gemini-3.5-flash",
+      model: "gemini-2.0-flash",
       contents: "Analyze the student profile and generate the future state parameters.",
       config: {
         systemInstruction: systemPrompt,
@@ -271,7 +271,7 @@ Analyze how this action alters their upcoming performance, and write a JSON repo
 Return strictly JSON. No extra wrapping.`;
 
     const response = await ai.models.generateContent({
-      model: "gemini-3.5-flash",
+      model: "gemini-2.0-flash",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -391,7 +391,7 @@ GUIDELINE:
     }));
 
     const response = await ai.models.generateContent({
-      model: "gemini-3.5-flash",
+      model: "gemini-2.0-flash",
       contents,
       config: {
         systemInstruction,

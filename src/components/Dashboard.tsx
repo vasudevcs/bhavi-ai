@@ -1,6 +1,8 @@
 import React from "react";
 import { TwinProfile, TwinInsights } from "../types";
-import { Award, AlertTriangle, Play, Sparkles, MessageSquare, Flame, CheckCircle2, ChevronRight, Activity, HelpCircle, ArrowUpRight } from "lucide-react";
+import { motion } from "motion/react";
+import { Award, AlertTriangle, Play, Sparkles, MessageSquare, Flame, CheckCircle2, ChevronRight, Activity, HelpCircle, ArrowUpRight, Info } from "lucide-react";
+import DigitalTwin from "./twin/DigitalTwin";
 
 interface DashboardProps {
   profile: TwinProfile;
@@ -44,13 +46,27 @@ export default function Dashboard({
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8 space-y-8 animate-fade-in" id="dashboard-container">
+    <motion.div 
+      initial={{ opacity: 0, x: -10 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: 10 }}
+      className="max-w-6xl mx-auto px-4 py-8 space-y-8 animate-fade-in" 
+      id="dashboard-container"
+    >
       
       {/* Header Bar */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm">
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center text-4xl">
-            {profile.avatar}
+          {/* Animated Digital Twin Avatar */}
+          <div className="hidden md:block">
+            <DigitalTwin 
+              name={profile.twinName || profile.name} 
+              personality={profile.personality} 
+              layoutId="main-twin" 
+              size="md" 
+              isActive={true} 
+              moodInput={{ readinessScore: insights.readinessScore, riskScore: insights.riskScore }}
+            />
           </div>
           <div>
             <div className="flex items-center gap-2">
@@ -183,6 +199,20 @@ export default function Dashboard({
         </div>
       </div>
 
+      {/* Score Explanation Banner */}
+      <div className="bg-indigo-50/40 border border-indigo-100 rounded-xl p-4 flex flex-wrap gap-4 items-start">
+        <div className="flex items-center gap-1.5 text-xs text-indigo-700">
+          <Info className="w-3.5 h-3.5 flex-shrink-0" />
+          <span className="font-semibold">Score Guide:</span>
+        </div>
+        <div className="flex flex-wrap gap-4 text-xs text-slate-600">
+          <span><span className="font-semibold text-slate-700">Readiness</span> — Your predicted probability of completing your goal at target quality. Higher is better.</span>
+          <span><span className="font-semibold text-slate-700">Risk</span> — Likelihood of failure if current habits continue unchanged. Lower is better.</span>
+          <span><span className="font-semibold text-slate-700">Focus</span> — Capacity to work uninterrupted during your {profile.hours}h weekly sessions. Higher is better.</span>
+          <span><span className="font-semibold text-slate-700">Consistency</span> — Day-over-day habit reproducibility. Directly compounds readiness over time.</span>
+        </div>
+      </div>
+
       {/* CORE GRID: Future Advice (Left) & Profile SWOT (Right) */}
       <div className="grid md:grid-cols-3 gap-8">
         
@@ -283,7 +313,7 @@ export default function Dashboard({
                 </span>
               </div>
               <div className="flex justify-between items-center text-xs">
-                <span className="text-slate-500">Weekly Study Committ:</span>
+                <span className="text-slate-500">Weekly Study Commitment:</span>
                 <span className="font-mono text-cyan-600 bg-cyan-50 px-2 py-0.5 rounded font-semibold">
                   {profile.hours} hrs
                 </span>
@@ -329,6 +359,6 @@ export default function Dashboard({
         </div>
 
       </div>
-    </div>
+    </motion.div>
   );
 }

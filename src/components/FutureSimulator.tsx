@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { TwinProfile, TwinMetrics, SimulatorOutcome } from "../types";
 import { Compass, Sparkles, Sliders, RefreshCw, Layers, TrendingUp, AlertCircle, ArrowUpRight, Check } from "lucide-react";
+import DigitalTwin from "./twin/DigitalTwin";
+import { motion } from "motion/react";
 
 interface FutureSimulatorProps {
   profile: TwinProfile;
@@ -66,7 +68,13 @@ export default function FutureSimulator({ profile, currentMetrics, onSimulate }:
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 space-y-8 animate-fade-in" id="simulator-container">
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 1.05 }}
+      className="max-w-4xl mx-auto px-4 py-8 space-y-8 animate-fade-in" 
+      id="simulator-container"
+    >
       
       {/* Title block */}
       <div className="border-b border-slate-100 pb-6">
@@ -170,64 +178,87 @@ export default function FutureSimulator({ profile, currentMetrics, onSimulate }:
               <div className="space-y-8 animate-fade-in" id="simulation-result">
                 
                 {/* Visual Delta card */}
-                <div className="grid sm:grid-cols-2 gap-4 bg-slate-50 border border-slate-100 rounded-xl p-4 items-center">
-                  <div>
-                    <span className="text-[10px] font-mono text-slate-400 uppercase">Delta Alignment Shift</span>
-                    <div className="flex items-baseline gap-2 mt-1">
-                      <span className={`text-4xl font-extrabold font-display ${result.improvementPercentage >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                        {result.improvementPercentage > 0 ? `+${result.improvementPercentage}%` : `${result.improvementPercentage}%`}
-                      </span>
-                      <span className="text-xs text-slate-500 font-medium font-sans">
-                        {result.improvementPercentage >= 0 ? "Compounding Uplift" : "Degradation Risk"}
-                      </span>
-                    </div>
+                <div className="grid sm:grid-cols-[auto_1fr] gap-4 bg-slate-50 border border-slate-100 rounded-xl p-4 items-center">
+                  <div className="hidden sm:block">
+                    <DigitalTwin
+                      name={profile.twinName || profile.name}
+                      personality={profile.personality}
+                      layoutId="main-twin"
+                      size="sm"
+                      isActive={true}
+                      moodInput={{ 
+                        isSuccessEvent: result.improvementPercentage >= 0,
+                        riskScore: result.improvementPercentage < 0 ? 80 : 0
+                      }}
+                    />
                   </div>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div>
+                      <span className="text-[10px] font-mono text-slate-400 uppercase">Delta Alignment Shift</span>
+                      <div className="flex items-baseline gap-2 mt-1">
+                        <span className={`text-4xl font-extrabold font-display ${result.improvementPercentage >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                          {result.improvementPercentage > 0 ? `+${result.improvementPercentage}%` : `${result.improvementPercentage}%`}
+                        </span>
+                        <span className="text-xs text-slate-500 font-medium font-sans">
+                          {result.improvementPercentage >= 0 ? "Compounding Uplift" : "Degradation Risk"}
+                        </span>
+                      </div>
+                    </div>
 
-                  <div className="p-3 bg-white border border-slate-150/75 rounded-lg">
-                    <span className="text-[9px] font-mono text-slate-400 block uppercase">Twin Feedback ({profile.personality})</span>
-                    <p className="text-xs text-slate-600 italic leading-relaxed mt-1">
-                      "{result.comment}"
-                    </p>
+                    <div className="p-3 bg-white border border-slate-150/75 rounded-lg">
+                      <span className="text-[9px] font-mono text-slate-400 block uppercase">Twin Feedback ({profile.personality})</span>
+                      <p className="text-xs text-slate-600 italic leading-relaxed mt-1">
+                        "{result.comment}"
+                      </p>
+                    </div>
                   </div>
                 </div>
 
-                {/* Score Comparison Bars */}
+                {/* Score Comparison Bars - All 4 metrics */}
                 <div className="space-y-4">
                   <h4 className="text-xs font-bold text-slate-700 uppercase tracking-widest">
                     Side-By-Side Trajectory Delta
                   </h4>
 
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    {/* Readiness */}
-                    <div className="border border-slate-100 rounded-lg p-3.5 space-y-2">
-                      <span className="text-xs font-bold text-slate-500 block">Future Readiness Alignment</span>
-                      <div className="space-y-1">
-                        <div className="flex justify-between text-[11px] font-mono">
-                          <span className="text-slate-400">Current Future:</span>
-                          <span className="font-bold text-slate-700">{currentMetrics.readinessScore}%</span>
+                  {[
+                    { label: "Future Readiness", current: currentMetrics.readinessScore, next: result.newMetrics.readinessScore, isRisk: false, color: "#6366f1" },
+                    { label: "Failure Risk",      current: currentMetrics.riskScore,      next: result.newMetrics.riskScore,      isRisk: true,  color: "#ef4444" },
+                    { label: "Focus Stability",   current: currentMetrics.focusScore,     next: result.newMetrics.focusScore,     isRisk: false, color: "#0ea5e9" },
+                    { label: "Consistency",       current: currentMetrics.consistencyScore, next: result.newMetrics.consistencyScore, isRisk: false, color: "#f59e0b" },
+                  ].map((metric) => {
+                    const delta = metric.next - metric.current;
+                    const good = metric.isRisk ? delta < 0 : delta > 0;
+                    return (
+                      <div key={metric.label} className="border border-slate-100 rounded-lg p-3.5 space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs font-bold text-slate-600">{metric.label}</span>
+                          <span className={`text-xs font-mono font-bold ${good ? 'text-emerald-600' : 'text-rose-600'}`}>
+                            {delta > 0 ? '+' : ''}{delta}%
+                          </span>
                         </div>
-                        <div className="flex justify-between text-[11px] font-mono">
-                          <span className="text-emerald-600 font-bold">Alternative Future:</span>
-                          <span className="font-bold text-emerald-600">{result.newMetrics.readinessScore}%</span>
+                        {/* Current bar */}
+                        <div>
+                          <div className="flex justify-between text-[10px] font-mono text-slate-400 mb-0.5">
+                            <span>Current</span>
+                            <span>{metric.current}%</span>
+                          </div>
+                          <div className="w-full h-1.5 bg-slate-100 rounded-full">
+                            <div className="h-1.5 rounded-full bg-slate-300" style={{ width: `${metric.current}%` }} />
+                          </div>
+                        </div>
+                        {/* New bar */}
+                        <div>
+                          <div className="flex justify-between text-[10px] font-mono mb-0.5" style={{color: metric.color}}>
+                            <span className="font-semibold">Simulated</span>
+                            <span className="font-bold">{metric.next}%</span>
+                          </div>
+                          <div className="w-full h-1.5 bg-slate-100 rounded-full">
+                            <div className="h-1.5 rounded-full score-bar-fill" style={{ width: `${metric.next}%`, backgroundColor: metric.color }} />
+                          </div>
                         </div>
                       </div>
-                    </div>
-
-                    {/* Risk */}
-                    <div className="border border-slate-100 rounded-lg p-3.5 space-y-2">
-                      <span className="text-xs font-bold text-slate-500 block">Failure Risk Propensity</span>
-                      <div className="space-y-1">
-                        <div className="flex justify-between text-[11px] font-mono">
-                          <span className="text-slate-400">Current Future:</span>
-                          <span className="font-bold text-slate-700">{currentMetrics.riskScore}%</span>
-                        </div>
-                        <div className="flex justify-between text-[11px] font-mono">
-                          <span className="text-rose-600 font-bold">Alternative Future:</span>
-                          <span className="font-bold text-rose-600">{result.newMetrics.riskScore}%</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                    );
+                  })}
                 </div>
 
                 {/* Alternative Timeline Forecast narrative description */}
@@ -258,13 +289,23 @@ export default function FutureSimulator({ profile, currentMetrics, onSimulate }:
               </div>
             ) : (
               <div className="py-16 text-center space-y-4">
-                <div className="w-16 h-16 mx-auto rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center text-2xl border border-emerald-100 animate-pulse-slow">
-                  🌐
+                <div className="flex justify-center mb-6">
+                  <DigitalTwin
+                    name={profile.twinName || profile.name}
+                    personality={profile.personality}
+                    layoutId="main-twin"
+                    size="md"
+                    isActive={true}
+                    moodInput={{ 
+                      readinessScore: currentMetrics.readinessScore, 
+                      riskScore: currentMetrics.riskScore 
+                    }}
+                  />
                 </div>
                 <div>
                   <h4 className="text-base font-bold text-slate-800 font-display">Awaiting Simulation Parameters</h4>
                   <p className="text-xs text-slate-500 max-w-sm mx-auto mt-1 leading-relaxed">
-                    Choose one of the quick quick-sim presets on the left or type your customized scenario variables to calculate outcome deltas.
+                    Choose one of the quick-sim presets on the left or type your customized scenario variables to calculate outcome deltas.
                   </p>
                 </div>
               </div>
@@ -280,6 +321,6 @@ export default function FutureSimulator({ profile, currentMetrics, onSimulate }:
         </div>
 
       </div>
-    </div>
+    </motion.div>
   );
 }

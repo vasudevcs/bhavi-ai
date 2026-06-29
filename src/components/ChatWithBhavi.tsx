@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import { TwinProfile, ChatMessage } from "../types";
-import { MessageSquare, Send, Bot, RefreshCw, Sparkles } from "lucide-react";
+import { MessageSquare, Send, Bot, RefreshCw, Sparkles, User } from "lucide-react";
+import DigitalTwin from "./twin/DigitalTwin";
+import { motion } from "motion/react";
 
 interface ChatWithBhaviProps {
   profile: TwinProfile;
@@ -44,7 +46,13 @@ export default function ChatWithBhavi({
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 space-y-6 animate-fade-in" id="chat-container">
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      className="max-w-4xl mx-auto px-4 py-8 space-y-6 animate-fade-in" 
+      id="chat-container"
+    >
       
       {/* Page Title & Status */}
       <div className="border-b border-slate-100 pb-5 mb-2 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
@@ -72,9 +80,14 @@ export default function ChatWithBhavi({
         {/* Chat Header */}
         <div className="bg-slate-50 border-b border-slate-100 p-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-2xl shadow-sm">
-              {profile.avatar}
-            </div>
+            <DigitalTwin
+              name={profile.twinName || profile.name}
+              personality={profile.personality}
+              layoutId="main-twin"
+              isActive={true}
+              size="sm"
+              moodInput={{ isGenerating: isGeneratingResponse }}
+            />
             <div>
               <div className="flex items-baseline gap-1.5">
                 <h4 className="font-bold text-sm text-slate-800">
@@ -108,8 +121,19 @@ export default function ChatWithBhavi({
                 className={`flex gap-3 max-w-[85%] ${isUser ? "ml-auto flex-row-reverse" : "mr-auto"}`}
               >
                 {/* Avatar Icon */}
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm border flex-shrink-0 bg-white shadow-sm ${isUser ? "border-indigo-100" : "border-slate-100"}`}>
-                  {isUser ? "👋" : profile.avatar}
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm border flex-shrink-0 shadow-sm ${isUser ? "border-indigo-100 bg-indigo-600" : "border-slate-100 bg-white"}`}>
+                  {isUser
+                    ? <User className="w-4 h-4 text-white" />
+                    : (
+                      <DigitalTwin
+                        name={profile.name}
+                        personality={profile.personality}
+                        size="sm"
+                        isActive={false}
+                        className="scale-75"
+                      />
+                    )
+                  }
                 </div>
 
                 {/* Bubble content */}
@@ -134,8 +158,15 @@ export default function ChatWithBhavi({
           {/* Typing Indicator */}
           {isGeneratingResponse && (
             <div className="flex gap-3 mr-auto max-w-[85%]">
-              <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-sm border border-slate-150">
-                {profile.avatar}
+              <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-sm border border-slate-150 overflow-hidden">
+                <DigitalTwin
+                  name={profile.name}
+                  personality={profile.personality}
+                  size="sm"
+                  isActive={true}
+                  className="scale-[0.4]"
+                  moodInput={{ isGenerating: true }}
+                />
               </div>
               <div className="bg-white border border-slate-200 p-3.5 rounded-2xl rounded-tl-none flex items-center gap-2 self-start shadow-sm">
                 <RefreshCw className="w-4 h-4 text-cyan-600 animate-spin" />
@@ -203,6 +234,6 @@ export default function ChatWithBhavi({
         </p>
       </div>
 
-    </div>
+    </motion.div>
   );
 }
